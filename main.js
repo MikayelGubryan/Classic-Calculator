@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const operators = document.querySelectorAll(".keys");
   const counter = document.querySelector("#counter");
   const result = document.querySelector(".bottom-key-t");
-
+  const comma = document.querySelector(".bottom-key-s");
   let firstNum = null;
   let secondNum = null;
   let operator = "";
@@ -12,23 +12,23 @@ document.addEventListener("DOMContentLoaded", function() {
     firstNum = null;
     secondNum = null;
     operator = "";
-    counter.textContent = "0";
+    counter.value = "0";
   }
 
   function calculate() {
     if (operator && firstNum !== null && secondNum !== null) {
       switch (operator) {
         case "+":
-          counter.textContent = parseFloat(firstNum) + parseFloat(secondNum);
+          counter.value = parseFloat(firstNum) + parseFloat(secondNum);
           break;
         case "-":
-          counter.textContent = parseFloat(firstNum) - parseFloat(secondNum);
+          counter.value = parseFloat(firstNum) - parseFloat(secondNum);
           break;
         case "×":
-          counter.textContent = parseFloat(firstNum) * parseFloat(secondNum);
+          counter.value = parseFloat(firstNum) * parseFloat(secondNum);
           break;
         case "÷":
-          counter.textContent = parseFloat(firstNum) / parseFloat(secondNum);
+          counter.value = parseFloat(firstNum) / parseFloat(secondNum);
           break;
       }
     }
@@ -39,22 +39,24 @@ document.addEventListener("DOMContentLoaded", function() {
       clear();
     } else if (key === "=") {
       calculate();
-    } else if (!isNaN(key) || key === ".") {
+    } else if (!isNaN(key) || key === ",") {
       if (operator === "") {
         firstNum = firstNum === null ? key : firstNum + key;
-        counter.textContent = parseFloat(firstNum); 
+        counter.value = parseFloat(firstNum); 
       } else {
-        if (!(key === "." && counter.textContent.includes("."))) {
+        if (!(key === "," && counter.value.includes(","))) {
           secondNum = secondNum === null ? key : secondNum + key;
-          counter.textContent += key;
+          counter.value += key;
         }
       } 
+    }else if(key === ",") {
+      calculate();
     } else {
       if (operator !== "") {
         calculate();
       }
       operator = key;
-      counter.textContent += key;
+      counter.value += key;
     }
   }
 
@@ -74,6 +76,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     result.addEventListener("click", function(event) {
       input("=");
+  });
+  
+    comma.addEventListener("click", function(event) {
+      console.log("exav")
+      input(",");
   });
 });
 
