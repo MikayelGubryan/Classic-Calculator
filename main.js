@@ -1,89 +1,143 @@
 document.addEventListener("DOMContentLoaded", function() {
-  const numbers = document.querySelectorAll(".key");
-  const operators = document.querySelectorAll(".keys");
-  const counter = document.querySelector("#counter");
-  const result = document.querySelector(".bottom-key-t");
-  const comma = document.querySelector(".bottom-key-s");
-  let firstNum = null;
-  let secondNum = null;
-  let operator = "";
+  const keys = document.querySelector(".calculator-keys");
+  const display = document.querySelector(".calculator-screen");
+  let firstValue = null;
+  let waitingForSecondValue = false;
+  let displayValue = "0";
+  let operator = null;
+  let equalsButton;
+
+  const buttons = [
+    { text: "AC", value: "all-clear", class: "all-clear" },
+    { text: "+/-", value: "+/-", class: "operator" },
+    { text: "%", value: "%", class: "operator" },
+    { text: "/", value: "/", class: "operator" },
+    { text: "7", value: "7", class: "" },
+    { text: "8", value: "8", class: "" },
+    { text: "9", value: "9", class: "" },
+    { text: "*", value: "*", class: "operator" },
+    { text: "4", value: "4", class: "" },
+    { text: "5", value: "5", class: "" },
+    { text: "6", value: "6", class: "" },
+    { text: "-", value: "-", class: "operator" },
+    { text: "1", value: "1", class: "" },
+    { text: "2", value: "2", class: "" },
+    { text: "3", value: "3", class: "" },
+    { text: "+", value: "+", class: "operator" },
+    { text: "0", value: "0", class: "zero" },
+    { text: ",", value: ",", class: "operator" },
+    { text: "=", value: "=", class: "operator" },
+  ];
+
+  buttons.forEach((button) => {
+    let btn = document.createElement("button");
+    btn.innerText = button.text;
+    btn.value = button.value;
+
+    if (button.class) {
+      btn.classList.add(button.class);
+    }
+
+    keys.appendChild(btn);
+
+    btn.addEventListener("click", function() {
+      const value = this.value;
+      if (value === "all-clear") {
+        clear();
+      } else if (value === "=") {
+        handleEquals();
+      } else if (value === "+/-") {
+        // Handle positive/negative toggle
+        displayValue = displayValue * -1;
+        updateDisplay();
+      } else {
+        handleButton(value);
+      }
+    });
+
+    if (button.value === "=") {
+      equalsButton = btn;
+    }
+  });
+
+  let calculate = {
+    "/": (firstValue, secondValue) => firstValue / secondValue,
+    "*": (firstValue, secondValue) => firstValue * secondValue,
+    "+": (firstValue, secondValue) => firstValue + secondValue,
+    "-": (firstValue, secondValue) => firstValue - secondValue,
+    "%": (firstValue, secondValue) => firstValue % secondValue,
+  };
+
+  function updateDisplay() {
+    display.value = displayValue;
+  }
+
+  function inputDecimal(dot) {
+    if (!displayValue.includes(dot)) {
+      displayValue += dot;
+    }
+  }
+
+  function inputNumber(number) {
+    if (waitingForSecondValue) {
+      displayValue = number;
+      waitingForSecondValue = false;
+    } else {
+      displayValue = displayValue === "0" ? number : displayValue + number;
+    }
+  }
+
+  function handleButton(nextValue) {
+    console.log("Button clicked:", nextValue);
+    if (!isNaN(nextValue) || nextValue === ".") {
+      inputNumber(nextValue);
+    } else {
+      if (operator !== null && !waitingForSecondValue) {
+        result();
+      }
+      operator = nextValue;
+      waitingForSecondValue = true;
+      firstValue = parseFloat(displayValue);
+    }
+    updateDisplay();
+  }
+
+  function handleEquals() {
+    console.log("Equals button clicked");
+    if (operator && !waitingForSecondValue) {
+      result();
+      updateDisplay();
+    }
+  }
 
   function clear() {
-    firstNum = null;
-    secondNum = null;
-    operator = "";
-    counter.value = "0";
+    firstValue = null;
+    waitingForSecondValue = false;
+    operator = null;
+    displayValue = "0";
+    updateDisplay();
   }
 
-  function calculate() {
-    if (operator && firstNum !== null && secondNum !== null) {
-      switch (operator) {
-        case "+":
-          counter.value = parseFloat(firstNum) + parseFloat(secondNum);
-          break;
-        case "-":
-          counter.value = parseFloat(firstNum) - parseFloat(secondNum);
-          break;
-        case "×":
-          counter.value = parseFloat(firstNum) * parseFloat(secondNum);
-          break;
-        case "÷":
-          counter.value = parseFloat(firstNum) / parseFloat(secondNum);
-          break;
-      }
-    }
-  }
+  function result() {
+    console.log("Result function called");
+    const secondValue = parseFloat(displayValue);
+    console.log("Second value:", secondValue);
 
-  function input(key) {
-    if (key === "AC") {
-      clear();
-    } else if (key === "=") {
-      calculate();
-    } else if (!isNaN(key) || key === ",") {
-      if (operator === "") {
-        firstNum = firstNum === null ? key : firstNum + key;
-        counter.value = parseFloat(firstNum); 
-      } else {
-        if (!(key === "," && counter.value.includes(","))) {
-          secondNum = secondNum === null ? key : secondNum + key;
-          counter.value += key;
-        }
-      } 
-    }else if(key === ",") {
-      calculate();
+    if (operator === "/" && secondValue === 0) {
+      console.log("Division by zero");
+      displayValue = "Error";
     } else {
-      if (operator !== "") {
-        calculate();
-      }
-      operator = key;
-      counter.value += key;
+      const result = calculate[operator](firstValue, secondValue);
+      console.log("Result:", result);
+      displayValue = String(result);
     }
+
+    console.log("Display value after calculation:", displayValue);
+
+    firstValue = parseFloat(displayValue);
+    operator = null;
+    waitingForSecondValue = false;
   }
 
-  numbers.forEach(function(button) {
-    button.addEventListener("click", function(event) {
-      const key = event.target.textContent;
-      input(key);
-    });
-  });
-
-  operators.forEach(function(operatorButton) {
-    operatorButton.addEventListener("click", function(event) {
-      const key = event.target.textContent;
-      input(key);
-    });
-  });
-
-    result.addEventListener("click", function(event) {
-      input("=");
-  });
-  
-    comma.addEventListener("click", function(event) {
-      console.log("exav")
-      input(",");
-  });
+  equalsButton.addEventListener("click", handleEquals);
 });
-
-  
-
-  
